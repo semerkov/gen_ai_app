@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,9 +38,22 @@ public class GenAIController {
     }
 
     @PostMapping("/sk/send")
-    public PromptResponseDto sendPromptToSK(@Validated @RequestBody PromptRequestDto request) {
+    public PromptResponseDto sendPromptToSK(
+            @RequestHeader(name = "temperature", required = false) Double temperature,
+            @RequestHeader(name = "maxTokens", required = false) Integer maxTokens,
+            @Validated @RequestBody PromptRequestDto request) {
 
-        String result = semanticKernelService.processWithHistory(request.getInput());
+        String result = semanticKernelService.processWithHistory(request.getInput(), temperature, maxTokens);
+        return new PromptResponseDto(Collections.singletonList(result));
+    }
+
+    @PostMapping("/sk/currency/exchangeRate")
+    public PromptResponseDto getCurrencyExchangeRate(
+            @RequestHeader(name = "temperature", required = false) Double temperature,
+            @RequestHeader(name = "maxTokens", required = false) Integer maxTokens,
+            @Validated @RequestBody PromptRequestDto request) {
+
+        String result = semanticKernelService.getCurrencyExchangeRate(request.getInput(), temperature, maxTokens);
         return new PromptResponseDto(Collections.singletonList(result));
     }
 }

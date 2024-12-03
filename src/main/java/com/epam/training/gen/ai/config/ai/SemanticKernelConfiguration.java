@@ -2,10 +2,9 @@ package com.epam.training.gen.ai.config.ai;
 
 import com.azure.ai.openai.OpenAIAsyncClient;
 import com.epam.training.gen.ai.plugin.SimplePlugin;
+import com.epam.training.gen.ai.plugin.currencyExchangeRate.CurrencyExchangeRatePlugin;
 import com.microsoft.semantickernel.Kernel;
 import com.microsoft.semantickernel.aiservices.openai.chatcompletion.OpenAIChatCompletion;
-import com.microsoft.semantickernel.orchestration.InvocationContext;
-import com.microsoft.semantickernel.orchestration.PromptExecutionSettings;
 import com.microsoft.semantickernel.plugin.KernelPlugin;
 import com.microsoft.semantickernel.plugin.KernelPluginFactory;
 import com.microsoft.semantickernel.services.chatcompletion.ChatCompletionService;
@@ -16,8 +15,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
-
-import java.util.Map;
 
 /**
  * Configuration class for setting up Semantic Kernel components.
@@ -68,7 +65,7 @@ public class SemanticKernelConfiguration {
      * @return an instance of {@link Kernel}
      */
     @Bean
-    public Kernel kernel(ChatCompletionService chatCompletionService, KernelPlugin kernelPlugin) {
+    public Kernel semanticKernel(ChatCompletionService chatCompletionService, KernelPlugin kernelPlugin) {
 
         return Kernel.builder()
                 .withAIService(ChatCompletionService.class, chatCompletionService)
@@ -77,43 +74,31 @@ public class SemanticKernelConfiguration {
     }
 
     /**
-     * Creates an {@link InvocationContext} bean with default prompt execution settings.
+     * Creates a {@link KernelPlugin} bean for getting of currency rates.
      *
-     * @return an instance of {@link InvocationContext}
+     * @return an instance of {@link KernelPlugin}
      */
     @Bean
-    public InvocationContext invocationContext(@Value("${client-sk-temperature:1.0}") double temperature,
-            @Value("${client-max-tokens:256}") int maxTokens) {
+    public KernelPlugin currencyExchangeRateKernelPlugin(CurrencyExchangeRatePlugin currencyExchangeRatePlugin) {
 
-        return InvocationContext.builder()
-                .withPromptExecutionSettings(PromptExecutionSettings.builder()
-                        .withTemperature(temperature)
-                        .withMaxTokens(maxTokens)
-                        .build())
-                .build();
+        return KernelPluginFactory.createFromObject(
+                currencyExchangeRatePlugin, "Currency_Exchange_Rate_Plugin");
     }
 
-    /**
-     * Creates a map of {@link PromptExecutionSettings} for different models.
-     *
-     * @param deploymentOrModelName the Azure OpenAI deployment or model name
-     * @return a map of model names to {@link PromptExecutionSettings}
-     */
     @Bean
-    public Map<String, PromptExecutionSettings> promptExecutionsSettingsMap(
-            @Value("${client-openai-deployment-name}") String deploymentOrModelName,
-            @Value("${client-sk-temperature:1.0}") double temperature,
-            @Value("${client-max-tokens:256}") int maxTokens) {
+    public Kernel currencyExchangeRateKernel(ChatCompletionService chatCompletionService,
+            KernelPlugin currencyExchangeRateKernelPlugin) {
 
-        return Map.of(deploymentOrModelName, PromptExecutionSettings.builder()
-                .withTemperature(temperature)
-                .withMaxTokens(maxTokens)
-                .build());
+        return Kernel.builder()
+                .withAIService(ChatCompletionService.class, chatCompletionService)
+                .withPlugin(currencyExchangeRateKernelPlugin)
+                .build();
     }
 
     @Bean
     @Scope(scopeName = "session", proxyMode = ScopedProxyMode.TARGET_CLASS)
     public ChatHistory chatHistory() {
+
         return new ChatHistory();
     }
 }
