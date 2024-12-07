@@ -39,21 +39,25 @@ public class GenAIController {
 
     @PostMapping("/sk/send")
     public PromptResponseDto sendPromptToSK(
+            @RequestHeader(name = "deploymentName", required = false) String deploymentName,
             @RequestHeader(name = "temperature", required = false) Double temperature,
             @RequestHeader(name = "maxTokens", required = false) Integer maxTokens,
             @Validated @RequestBody PromptRequestDto request) {
 
-        String result = semanticKernelService.processWithHistory(request.getInput(), temperature, maxTokens);
+        String result = semanticKernelService.processWithHistory(request.getInput(), deploymentName, temperature,
+                maxTokens);
         return new PromptResponseDto(Collections.singletonList(result));
     }
 
     @PostMapping("/sk/currency/exchangeRate")
     public PromptResponseDto getCurrencyExchangeRate(
+            @RequestHeader(name = "deploymentName", required = false) String deploymentName,
             @RequestHeader(name = "temperature", required = false) Double temperature,
             @RequestHeader(name = "maxTokens", required = false) Integer maxTokens,
             @Validated @RequestBody PromptRequestDto request) {
 
-        String result = semanticKernelService.getCurrencyExchangeRate(request.getInput(), temperature, maxTokens);
+        String result = semanticKernelService.getCurrencyExchangeRate(request.getInput(), deploymentName, temperature,
+                maxTokens);
         return new PromptResponseDto(Collections.singletonList(result));
     }
 }
