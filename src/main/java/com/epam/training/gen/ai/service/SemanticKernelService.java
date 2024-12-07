@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class SemanticKernelService {
 
-    private static final String SIMPLE_KERNEL_PREFIX = "simple_";
-    private static final String CURRENCY_EXCHANGE_KERNEL_PREFIX = "currencyExchange_";
+    private static final String SIMPLE_KERNEL_PREFIX = "simple";
+    private static final String CURRENCY_EXCHANGE_KERNEL_PREFIX = "currencyExchange";
 
     @Value("${client-openai-deployment-name}")
     private String defaultDeploymentName;
@@ -41,9 +41,9 @@ public class SemanticKernelService {
     @Value("${client-max-tokens:256}")
     private int defaultMaxTokens;
 
-    private OpenAIAsyncClient openAIAsyncClient;
-    private KernelPlugin kernelPlugin;
-    private KernelPlugin currencyExchangeRateKernelPlugin;
+    private final OpenAIAsyncClient openAIAsyncClient;
+    private final KernelPlugin kernelPlugin;
+    private final KernelPlugin currencyExchangeRateKernelPlugin;
     private final ChatHistory chatHistory;
     private final Map<String, Kernel> kernelMap = new ConcurrentHashMap<>();
 
@@ -59,16 +59,18 @@ public class SemanticKernelService {
 
     public String processWithHistory(String input, String deploymentName, Double temperature, Integer maxTokens) {
 
-        return processOnKernelWithHistory(kernelPlugin, input, deploymentName, temperature, maxTokens);
+        return processOnKernelWithHistory(kernelPlugin, SIMPLE_KERNEL_PREFIX, input, deploymentName, temperature,
+                maxTokens);
     }
 
     public String getCurrencyExchangeRate(String input, String deploymentName, Double temperature, Integer maxTokens) {
 
-        return processOnKernelWithHistory(currencyExchangeRateKernelPlugin, input, deploymentName, temperature,
-                maxTokens);
+        return processOnKernelWithHistory(currencyExchangeRateKernelPlugin, CURRENCY_EXCHANGE_KERNEL_PREFIX, input,
+                deploymentName, temperature, maxTokens);
     }
 
-    private String processOnKernelWithHistory(KernelPlugin kernelPlugin, String kernelPrefix, String input, String deploymentName,
+    private String processOnKernelWithHistory(KernelPlugin kernelPlugin, String kernelPrefix, String input,
+            String deploymentName,
             Double temperature, Integer maxTokens) {
 
         InvocationContext invocationContext = buildInvocationContext(temperature, maxTokens);
@@ -107,7 +109,8 @@ public class SemanticKernelService {
 
     private Kernel getKernel(String deploymentName, KernelPlugin kernelPlugin, String kernelPrefix) {
 
-        return kernelMap.computeIfAbsent(deploymentName, (v) -> {
+        String kernelKey = kernelPrefix + "_" + deploymentName;
+        return kernelMap.computeIfAbsent(kernelKey, (v) -> {
             ChatCompletionService chatCompletionService = OpenAIChatCompletion.builder()
                     .withModelId(deploymentName)
                     .withOpenAIAsyncClient(openAIAsyncClient)
