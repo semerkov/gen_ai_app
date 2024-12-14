@@ -1,5 +1,7 @@
 package com.epam.training.gen.ai.service;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -8,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import com.azure.ai.openai.OpenAIAsyncClient;
 import com.epam.training.gen.ai.config.ai.ModelConfiguration;
@@ -46,38 +49,42 @@ public class SemanticKernelService {
     private final OpenAIAsyncClient openAIAsyncClient;
     private final KernelPlugin kernelPlugin;
     private final KernelPlugin currencyExchangeRateKernelPlugin;
+    private final KernelPlugin weatherForecastKernelPlugin;
     private final ChatHistory chatHistory;
     private final Map<String, Kernel> kernelMap = new ConcurrentHashMap<>();
 
     @Autowired
     public SemanticKernelService(ModelConfiguration modelConfiguration, OpenAIAsyncClient openAIAsyncClient,
-            KernelPlugin currencyExchangeRateKernelPlugin, KernelPlugin kernelPlugin, ChatHistory chatHistory) {
+            KernelPlugin currencyExchangeRateKernelPlugin, KernelPlugin weatherForecastKernelPlugin,
+            KernelPlugin kernelPlugin, ChatHistory chatHistory) {
 
         this.modelConfiguration = modelConfiguration;
         this.openAIAsyncClient = openAIAsyncClient;
         this.kernelPlugin = kernelPlugin;
         this.currencyExchangeRateKernelPlugin = currencyExchangeRateKernelPlugin;
+        this.weatherForecastKernelPlugin = weatherForecastKernelPlugin;
         this.chatHistory = chatHistory;
     }
 
     public String processWithHistory(String input, String deploymentName, Double temperature, Integer maxTokens) {
 
-        return processOnKernelWithHistory(kernelPlugin, SIMPLE_KERNEL_PREFIX, input, deploymentName, temperature,
+        return processOnKernelWithHistory(Collections.singletonList(kernelPlugin), SIMPLE_KERNEL_PREFIX, input,
+                deploymentName, temperature,
                 maxTokens);
     }
 
-    public String getCurrencyExchangeRate(String input, String deploymentName, Double temperature, Integer maxTokens) {
+    public String getCommonInfoAboutPlace(String input, String deploymentName, Double temperature, Integer maxTokens) {
 
-        return processOnKernelWithHistory(currencyExchangeRateKernelPlugin, CURRENCY_EXCHANGE_KERNEL_PREFIX, input,
-                deploymentName, temperature, maxTokens);
+        return processOnKernelWithHistory(List.of(currencyExchangeRateKernelPlugin, weatherForecastKernelPlugin),
+                CURRENCY_EXCHANGE_KERNEL_PREFIX, input, deploymentName, temperature, maxTokens);
     }
 
-    private String processOnKernelWithHistory(KernelPlugin kernelPlugin, String kernelPrefix, String input,
+    private String processOnKernelWithHistory(List<KernelPlugin> kernelPlugins, String kernelPrefix, String input,
             String deploymentName, Double temperature, Integer maxTokens) {
 
         deploymentName = StringUtils.defaultIfBlank(deploymentName, defaultDeploymentName);
         InvocationContext invocationContext = buildInvocationContext(deploymentName, temperature, maxTokens);
-        Kernel kernel = getKernel(deploymentName, kernelPlugin, kernelPrefix);
+        Kernel kernel = getKernel(deploymentName, kernelPlugins, kernelPrefix);
         log.info("Deployment name: {}, temperature: {}, max tokens: {}.", deploymentName, temperature, maxTokens);
 
         FunctionResult<String> response = kernel.invokeAsync(getChat())
@@ -109,7 +116,7 @@ public class SemanticKernelService {
                 .build();
     }
 
-    private Kernel getKernel(String deploymentName, KernelPlugin kernelPlugin, String kernelPrefix) {
+    private Kernel getKernel(String deploymentName, List<KernelPlugin> kernelPlugins, String kernelPrefix) {
 
         String kernelKey = kernelPrefix + "_" + deploymentName;
         return kernelMap.computeIfAbsent(kernelKey, (v) -> {
@@ -118,10 +125,14 @@ public class SemanticKernelService {
                     .withOpenAIAsyncClient(openAIAsyncClient)
                     .build();
 
-            return Kernel.builder()
-                    .withAIService(ChatCompletionService.class, chatCompletionService)
-                    .withPlugin(kernelPlugin)
-                    .build();
+            Kernel.Builder kernelBuilder = Kernel.builder()
+                    .withAIService(ChatCompletionService.class, chatCompletionService);
+
+            if (!CollectionUtils.isEmpty(kernelPlugins)) {
+                kernelPlugins.forEach(kernelBuilder::withPlugin);
+            }
+
+            return kernelBuilder.build();
         });
     }
 
