@@ -35,7 +35,7 @@ public class SemanticKernelConfiguration {
      * @return an instance of {@link ChatCompletionService}
      */
     @Bean
-    public ChatCompletionService chatCompletionService(
+    public ChatCompletionService defaultChatCompletionService(
             @Value("${client-openai-deployment-name}") String deploymentOrModelName,
             OpenAIAsyncClient openAIAsyncClient) {
 
@@ -60,15 +60,15 @@ public class SemanticKernelConfiguration {
     /**
      * Creates a {@link Kernel} bean to manage AI services and plugins.
      *
-     * @param chatCompletionService the {@link ChatCompletionService} for handling completions
-     * @param kernelPlugin          the {@link KernelPlugin} to be used in the kernel
+     * @param defaultChatCompletionService the {@link ChatCompletionService} for handling completions
+     * @param kernelPlugin                 the {@link KernelPlugin} to be used in the kernel
      * @return an instance of {@link Kernel}
      */
     @Bean
-    public Kernel semanticKernel(ChatCompletionService chatCompletionService, KernelPlugin kernelPlugin) {
+    public Kernel defaultSemanticKernel(ChatCompletionService defaultChatCompletionService, KernelPlugin kernelPlugin) {
 
         return Kernel.builder()
-                .withAIService(ChatCompletionService.class, chatCompletionService)
+                .withAIService(ChatCompletionService.class, defaultChatCompletionService)
                 .withPlugin(kernelPlugin)
                 .build();
     }
@@ -86,11 +86,11 @@ public class SemanticKernelConfiguration {
     }
 
     @Bean
-    public Kernel currencyExchangeRateKernel(ChatCompletionService chatCompletionService,
+    public Kernel currencyExchangeRateKernel(ChatCompletionService defaultChatCompletionService,
             KernelPlugin currencyExchangeRateKernelPlugin) {
 
         return Kernel.builder()
-                .withAIService(ChatCompletionService.class, chatCompletionService)
+                .withAIService(ChatCompletionService.class, defaultChatCompletionService)
                 .withPlugin(currencyExchangeRateKernelPlugin)
                 .build();
     }
