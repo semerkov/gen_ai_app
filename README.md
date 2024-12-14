@@ -50,14 +50,14 @@ Example of response:
 }
 ```
 
-### 3.3 Get currency exchange rate (Semantic Kernel Plugin)
+### 3.3 Get common information about place (Semantic Kernel Plugin)
 
-POST http://localhost:8085/prompt/sk/currency/exchangeRate
+POST http://localhost:8085/prompt/sk/place/commonInfo
 
 Example of request:
 ```json
 {
-    "input": "Could you provide exchange rate for currency in USA?"
+    "input": "Could you provide currency exchange rate for The Netherlands and weather for the nearest 5 days?"
 }
 ```
 
@@ -65,7 +65,7 @@ Example of response:
 ```json
 {
     "answers": [
-        "The exchange rate for the currency in the USA (USD) is 1 USD = 4.0827 PLN (Polish Zloty) as of 2024-12-02."
+        "The currency exchange rate for the Netherlands is 1 EUR = 4.2722 PLN.\n\nHere is the weather forecast for Amsterdam for the next 5 days:\n\n- Day 1 (2024-12-14): The temperature will range from 0.9°C to 7.8°C.\n- Day 2 (2024-12-15): The temperature will range from 5.7°C to 12.2°C.\n- Day 3 (2024-12-16): The temperature will range from 4.0°C to 11.9°C.\n- Day 4 (2024-12-17): The temperature will range from 4.7°C to 12.1°C.\n- Day 5 (2024-12-18): The temperature will range from 6.7°C to 12.1°C.\n\nPlease note that weather forecasts are subject to change, and it's always a good idea to check for updates closer to the date."
     ]
 }
 ```

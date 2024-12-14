@@ -3,6 +3,7 @@ package com.epam.training.gen.ai.config.ai;
 import com.azure.ai.openai.OpenAIAsyncClient;
 import com.epam.training.gen.ai.plugin.SimplePlugin;
 import com.epam.training.gen.ai.plugin.currencyExchangeRate.CurrencyExchangeRatePlugin;
+import com.epam.training.gen.ai.plugin.weatherForecast.WeatherForecastPlugin;
 import com.microsoft.semantickernel.Kernel;
 import com.microsoft.semantickernel.aiservices.openai.chatcompletion.OpenAIChatCompletion;
 import com.microsoft.semantickernel.plugin.KernelPlugin;
@@ -92,6 +93,28 @@ public class SemanticKernelConfiguration {
         return Kernel.builder()
                 .withAIService(ChatCompletionService.class, defaultChatCompletionService)
                 .withPlugin(currencyExchangeRateKernelPlugin)
+                .build();
+    }
+
+    /**
+     * Creates a {@link KernelPlugin} bean for getting of weather forecast.
+     *
+     * @return an instance of {@link KernelPlugin}
+     */
+    @Bean
+    public KernelPlugin weatherForecastKernelPlugin(WeatherForecastPlugin weatherForecastPlugin) {
+
+        return KernelPluginFactory.createFromObject(
+                weatherForecastPlugin, "Weather_Forecast_Plugin");
+    }
+
+    @Bean
+    public Kernel weatherForecastKernel(ChatCompletionService defaultChatCompletionService,
+            KernelPlugin weatherForecastKernelPlugin) {
+
+        return Kernel.builder()
+                .withAIService(ChatCompletionService.class, defaultChatCompletionService)
+                .withPlugin(weatherForecastKernelPlugin)
                 .build();
     }
 
