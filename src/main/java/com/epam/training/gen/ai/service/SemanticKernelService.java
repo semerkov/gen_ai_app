@@ -35,6 +35,7 @@ public class SemanticKernelService {
 
     private static final String SIMPLE_KERNEL_PREFIX = "simple";
     private static final String CURRENCY_EXCHANGE_KERNEL_PREFIX = "currencyExchange";
+    private static final String DATING_KERNEL_PREFIX = "dating";
 
     @Value("${client-openai-deployment-name}")
     private String defaultDeploymentName;
@@ -50,19 +51,21 @@ public class SemanticKernelService {
     private final KernelPlugin kernelPlugin;
     private final KernelPlugin currencyExchangeRateKernelPlugin;
     private final KernelPlugin weatherForecastKernelPlugin;
+    private final KernelPlugin datingKernelPlugin;
     private final ChatHistory chatHistory;
     private final Map<String, Kernel> kernelMap = new ConcurrentHashMap<>();
 
     @Autowired
     public SemanticKernelService(ModelConfiguration modelConfiguration, OpenAIAsyncClient openAIAsyncClient,
             KernelPlugin currencyExchangeRateKernelPlugin, KernelPlugin weatherForecastKernelPlugin,
-            KernelPlugin kernelPlugin, ChatHistory chatHistory) {
+            KernelPlugin datingKernelPlugin, KernelPlugin kernelPlugin, ChatHistory chatHistory) {
 
         this.modelConfiguration = modelConfiguration;
         this.openAIAsyncClient = openAIAsyncClient;
         this.kernelPlugin = kernelPlugin;
         this.currencyExchangeRateKernelPlugin = currencyExchangeRateKernelPlugin;
         this.weatherForecastKernelPlugin = weatherForecastKernelPlugin;
+        this.datingKernelPlugin = datingKernelPlugin;
         this.chatHistory = chatHistory;
     }
 
@@ -79,10 +82,19 @@ public class SemanticKernelService {
                 CURRENCY_EXCHANGE_KERNEL_PREFIX, input, deploymentName, temperature, maxTokens);
     }
 
+    public String getMatchInfo(String input) {
+
+        return processOnKernelWithHistory(Collections.singletonList(datingKernelPlugin), DATING_KERNEL_PREFIX, input,
+                null, null, null);
+    }
+
     private String processOnKernelWithHistory(List<KernelPlugin> kernelPlugins, String kernelPrefix, String input,
             String deploymentName, Double temperature, Integer maxTokens) {
 
         deploymentName = StringUtils.defaultIfBlank(deploymentName, defaultDeploymentName);
+        temperature = ObjectUtils.defaultIfNull(temperature, defaultTemperature);
+        maxTokens = ObjectUtils.defaultIfNull(maxTokens, defaultMaxTokens);
+
         InvocationContext invocationContext = buildInvocationContext(deploymentName, temperature, maxTokens);
         Kernel kernel = getKernel(deploymentName, kernelPlugins, kernelPrefix);
         log.info("Deployment name: {}, temperature: {}, max tokens: {}.", deploymentName, temperature, maxTokens);
@@ -154,9 +166,6 @@ public class SemanticKernelService {
     }
 
     private InvocationContext buildInvocationContext(String deploymentName, Double temperature, Integer maxTokens) {
-
-        temperature = ObjectUtils.defaultIfNull(temperature, defaultTemperature);
-        maxTokens = ObjectUtils.defaultIfNull(maxTokens, defaultMaxTokens);
 
         PromptExecutionSettings promptExecutionSettings = PromptExecutionSettings.builder()
                 .withTemperature(temperature)

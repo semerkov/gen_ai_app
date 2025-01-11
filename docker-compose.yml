@@ -9,3 +9,20 @@ services:
         volumes:
             - ./qdrant_storage:/qdrant/storage:z
         restart: unless-stopped
+
+    date-candidates-db:
+        container_name: date-candidates-db
+        image: postgres:15.2-alpine
+        environment:
+            POSTGRES_USER: postgres1
+            POSTGRES_PASSWORD: postgres1
+            POSTGRES_DB: date-candidates
+        ports:
+            - "5440:5432"
+        volumes:
+            - "C:/postgres/posting-system/date_candidates_db/data:/var/lib/postgresql/data"
+        healthcheck:
+            test: pg_isready -U postgres1 -d user
+            interval: 5s
+            timeout: 3s
+            retries: 5

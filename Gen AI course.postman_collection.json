@@ -1,0 +1,545 @@
+{
+	"info": {
+		"_postman_id": "cf427be6-e137-4c7b-b9db-7faef0494a20",
+		"name": "Gen AI course",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "259611"
+	},
+	"item": [
+		{
+			"name": "Open AI",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"input\": \"What is the semantic kernel in the context of working with LLM?\" \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/prompt/open-ai/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"prompt",
+						"open-ai",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Semantic Kernel",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "512",
+						"type": "text"
+					},
+					{
+						"key": "deploymentName",
+						"value": "gpt-35-turbo",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"input\": \"What is the semantic kernel?\" \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/prompt/sk/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"prompt",
+						"sk",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Semantic Kernel Copy",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"input\": \"What are logitude and latitude for Krakow?\" \r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/prompt/sk/send",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"prompt",
+						"sk",
+						"send"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "SK Get common info about place",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n   \"input\": \"Could you provide currency exchange rate for The Netherlands and weather for the nearest 5 days?\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/prompt/sk/place/commonInfo",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"prompt",
+						"sk",
+						"place",
+						"commonInfo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Embeddings Create collection",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/embedding/create-collection",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"embedding",
+						"create-collection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Embeddings Build",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\": \"tree\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/embedding/build",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"embedding",
+						"build"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Embeddings Save",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\": \"pear\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/embedding/save",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"embedding",
+						"save"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Embeddings Search",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"text\": \"pear\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/embedding/search",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"embedding",
+						"search"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dating Create collection",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/dating/create-collection",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"dating",
+						"create-collection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dating (profile) Girl (9)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"emmy.connor\",\r\n    \"dateOfBirth\": \"09.12.1995\",\r\n    \"sex\": \"F\",\r\n    \"description\": \"I love basketball, read books. Have a dog.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/dating/check",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"dating",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dating (profile) Copy",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"username\": \"martin.stivenson\",\r\n    \"dateOfBirth\": \"07.07.1994\",\r\n    \"sex\": \"M\",\r\n    \"description\": \"I have a dog- just use him to get dates here.\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8085/dating/check",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"dating",
+						"check"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Dating (id)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "temperature",
+						"value": "1.0",
+						"type": "text"
+					},
+					{
+						"key": "maxTokens",
+						"value": "1000",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8085/dating/check/7",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8085",
+					"path": [
+						"dating",
+						"check",
+						"7"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get deployment names",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Api-Key",
+						"value": "c32575649d11426a856f4567db85e49c",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://ai-proxy.lab.epam.com/openai/deployments",
+					"protocol": "https",
+					"host": [
+						"ai-proxy",
+						"lab",
+						"epam",
+						"com"
+					],
+					"path": [
+						"openai",
+						"deployments"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

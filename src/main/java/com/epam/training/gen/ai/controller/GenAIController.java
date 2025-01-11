@@ -50,7 +50,7 @@ public class GenAIController {
     }
 
     @PostMapping("/sk/place/commonInfo")
-    public PromptResponseDto getCurrencyExchangeRate(
+    public PromptResponseDto getCommonInfoAboutPlace(
             @RequestHeader(name = "deploymentName", required = false) String deploymentName,
             @RequestHeader(name = "temperature", required = false) Double temperature,
             @RequestHeader(name = "maxTokens", required = false) Integer maxTokens,
