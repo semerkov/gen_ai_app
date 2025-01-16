@@ -1,9 +1,13 @@
 package com.epam.training.gen.ai.controller;
 
+import static io.qdrant.client.PointIdFactory.id;
+
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,6 +28,9 @@ public class EmbeddingController {
 
     private final EmbeddingService embeddingService;
 
+    @Value("${embedding.collection.name}")
+    private String collectionName;
+
     @Autowired
     public EmbeddingController(EmbeddingService embeddingService) {
 
@@ -33,7 +40,7 @@ public class EmbeddingController {
     @PostMapping("/create-collection")
     public ResponseEntity<Void> createCollection() throws ExecutionException, InterruptedException {
 
-        embeddingService.createCollection();
+        embeddingService.createCollection(collectionName);
         return ResponseEntity.ok().build();
     }
 
@@ -47,7 +54,7 @@ public class EmbeddingController {
     public ResponseEntity<Void> save(@Validated @RequestBody EmbeddingRequestDto requestDto)
             throws ExecutionException, InterruptedException {
 
-        embeddingService.processAndSaveText(requestDto.getText());
+        embeddingService.processAndSaveText(id(UUID.randomUUID()), requestDto.getText(), collectionName);
         return ResponseEntity.ok().build();
     }
 
@@ -55,7 +62,7 @@ public class EmbeddingController {
     public List<EmbeddingResponseDto> search(@Validated @RequestBody EmbeddingRequestDto requestDto)
             throws ExecutionException, InterruptedException {
 
-        return embeddingService.search(requestDto.getText()).stream()
+        return embeddingService.search(requestDto.getText(), collectionName, null).stream()
                 .map(result -> new EmbeddingResponseDto(result.getId().getUuid(),
                         result.getPayloadMap().get(PAYLOAD_KEY).getStringValue(),
                         result.getScore()))

@@ -5,6 +5,9 @@ Set the following environment variables:
 * OPEN_AI_DEPLOYMENT_NAME - deployment name (e.g. gpt-35-turbo);
 * OPEN_AI_ENDPOINT - service endpoint that will be connected to by client;
 * OPEN_AI_KEY - API key used to authorize requests.
+* DB_USERNAME - Postgres database username.
+* DB_PASSWORD - Postgres database password.
+* DB_URL Postgres database URL (e.g. jdbc:postgresql://192.168.100.4:5440/date-candidates).
 
 ## 2. Run Spring Boot application
 
@@ -77,6 +80,7 @@ POST http://localhost:8085/embedding/create-collection
 ### 3.5 Embeddings. Build item
 
 POST http://localhost:8085/embedding/build
+
 Example of request:
 ```json
 {
@@ -106,6 +110,7 @@ Example of response:
 ### 3.6 Embeddings. Build and save item
 
 POST http://localhost:8085/embedding/save
+
 Example of request:
 ```json
 {
@@ -116,6 +121,7 @@ Example of request:
 ### 3.7 Embeddings. Items search
 
 POST http://localhost:8085/embedding/search
+
 Example of request:
 ```json
 {
@@ -142,4 +148,43 @@ Example of response:
         "score": 0.8265206
     }
 ]
+```
+
+### 3.8 Dating. Create collection
+
+POST http://localhost:8085/dating/create-collection
+
+### 3.9 Dating. Add/update profile and check matches
+
+POST http://localhost:8085/dating/check
+
+Example of request:
+```json
+{
+    "username": "steve.dunkan",
+    "dateOfBirth": "30.12.1993",
+    "sex": "M"
+}
+```
+
+Example of response:
+```json
+{
+    "answers": [
+        "The destiny number represents the overall life path and purpose of an individual. For the current candidate, Steve Dunkan, with a destiny number of 1, it suggests that he is a leader with a strong sense of independence and individuality. He is ambitious, determined, and has a strong drive to succeed.\n\nBased on the match information, two candidates have been found for Steve Dunkan:\n\n1. Candidate 1: Username - Emma Smith. Sex - Female. Age - 32. Destiny Number - 9.\n   Description of the relationship with Steve Dunkan: The destiny number 9 is associated with compassion, empathy, and a nurturing nature. This suggests that Emma Smith may complement Steve's ambition with her caring and supportive nature. They may be able to bring balance and stability to each other's lives.\n\n2. Candidate 2: Username - Emmy Connor. Sex - Female. Age - 29. Destiny Number - 9.\n   Description of the relationship with Steve Dunkan: Similarly to the first candidate, Emmy Connor also has a destiny number of 9. This indicates that she possesses similar qualities of compassion and empathy. They may share a deep understanding and a strong emotional connection, which could contribute to a harmonious and fulfilling relationship.\n\nPlease note that destiny numbers provide insights into potential compatibility, but they are not the only factors to consider in building a successful relationship. It is important to get to know each other's values, interests, and personalities beyond just the destiny numbers."
+    ]
+}
+```
+
+### 3.10 Dating. Check matches by profile id
+
+GET http://localhost:8085/dating/check/{id}
+
+Example of response:
+```json
+{
+    "answers": [
+        "The destiny number represents the overall life path and purpose of an individual. For the current candidate, Sara Connor, with a destiny number of 5, it suggests that she is an adventurous and freedom-loving individual. She thrives on change, new experiences, and independence.\n\nBased on the match information, one candidate has been found for Sara Connor:\n\n| Username  | Sex   | Age | Destiny Number | Description of Relationship                                                             |\n|-----------|-------|-----|----------------|---------------------------------------------------------------------------------------|\n| rob.smith | Male  | 32  | 5              | Since both Sara Connor and Rob Smith have a destiny number of 5, they share similar traits of adventure and a love for freedom. They may be highly compatible and enjoy exploring new experiences together. Their shared desire for independence and change may contribute to a dynamic and exciting relationship. |\n\nPlease note that destiny numbers provide insights into potential compatibility, but they are not the only factors to consider in building a successful relationship. It is important to get to know each other's values, interests, and personalities beyond just the destiny numbers."
+    ]
+}
 ```

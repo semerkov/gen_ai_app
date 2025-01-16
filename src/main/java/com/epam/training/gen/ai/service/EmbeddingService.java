@@ -8,11 +8,15 @@ import com.azure.ai.openai.models.EmbeddingsOptions;
 import io.qdrant.client.QdrantClient;
 import io.qdrant.client.grpc.Collections;
 import io.qdrant.client.grpc.Collections.VectorParams;
+import io.qdrant.client.grpc.Points;
+import io.qdrant.client.grpc.Points.Filter;
+import io.qdrant.client.grpc.Points.PointId;
 import io.qdrant.client.grpc.Points.PointStruct;
 import io.qdrant.client.grpc.Points.ScoredPoint;
 import io.qdrant.client.grpc.Points.SearchPoints;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -22,10 +26,9 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
-import static io.qdrant.client.PointIdFactory.id;
+import static io.qdrant.client.ConditionFactory.matchKeyword;
 import static io.qdrant.client.ValueFactory.value;
 import static io.qdrant.client.VectorsFactory.vectors;
 import static io.qdrant.client.WithPayloadSelectorFactory.enable;
@@ -40,13 +43,11 @@ import static io.qdrant.client.WithPayloadSelectorFactory.enable;
 @Service
 public class EmbeddingService {
 
+    private static final String ID_KEY = "id";
     private static final String PAYLOAD_KEY = "info";
 
     @Value("${embedding.deployment-name}")
     private String embeddingDeploymentName;
-
-    @Value("${embedding.collection.name}")
-    private String collectionName;
 
     @Value("${embedding.collection.size}")
     private long collectionSize;
@@ -68,11 +69,14 @@ public class EmbeddingService {
      * Processes the input text into embeddings, transforms them into vector points,
      * and saves them in the Qdrant collection.
      *
-     * @param text the text to be processed into embeddings
+     * @param id             identifier
+     * @param text           the text to be processed into embeddings
+     * @param collectionName collection name
      * @throws ExecutionException   if the vector saving operation fails
      * @throws InterruptedException if the thread is interrupted during execution
      */
-    public void processAndSaveText(String text) throws ExecutionException, InterruptedException {
+    public void processAndSaveText(PointId id, String text, String collectionName)
+            throws ExecutionException, InterruptedException {
 
         var embeddings = getEmbeddings(text);
         var points = new ArrayList<List<Float>>();
@@ -84,11 +88,11 @@ public class EmbeddingService {
 
         var pointStructs = new ArrayList<PointStruct>();
         points.forEach(point -> {
-            var pointStruct = buildPointStruct(point, text);
+            var pointStruct = buildPointStruct(id, point, text);
             pointStructs.add(pointStruct);
         });
 
-        saveVector(pointStructs);
+        saveVector(pointStructs, collectionName);
     }
 
     /**
@@ -96,26 +100,41 @@ public class EmbeddingService {
      * <p>
      * The input text is converted to embeddings, and a search is performed based on the vector similarity.
      *
-     * @param text the text to search for similar vectors
+     * @param text           the text to search for similar vectors
+     * @param collectionName collection name
+     * @param ids            identifiers to search among
      * @return a list of scored points representing similar vectors
      * @throws ExecutionException   if the search operation fails
      * @throws InterruptedException if the thread is interrupted during execution
      */
-    public List<ScoredPoint> search(String text) throws ExecutionException, InterruptedException {
+    public List<ScoredPoint> search(String text, String collectionName, List<String> ids)
+            throws ExecutionException, InterruptedException {
 
         var embeddings = retrieveEmbeddings(text);
         var qe = new ArrayList<Float>();
         embeddings.block().getData().forEach(embeddingItem ->
                 qe.addAll(embeddingItem.getEmbedding())
         );
+
+        Points.SearchPoints.Builder builder = SearchPoints.newBuilder()
+                .setCollectionName(collectionName)
+                .addAllVector(qe)
+                .setWithPayload(enable(true))
+                .setLimit(limit);
+
+        if (CollectionUtils.isNotEmpty(ids)) {
+            List<Points.Condition> idConditions = ids.stream()
+                    .map(id -> matchKeyword(ID_KEY, id))
+                    .toList();
+
+            builder.setFilter(
+                    Filter.newBuilder()
+                            .addAllShould(idConditions)
+                            .build());
+        }
+
         return qdrantClient
-                .searchAsync(
-                        SearchPoints.newBuilder()
-                                .setCollectionName(collectionName)
-                                .addAllVector(qe)
-                                .setWithPayload(enable(true))
-                                .setLimit(limit)
-                                .build())
+                .searchAsync(builder.build())
                 .get();
     }
 
@@ -134,10 +153,11 @@ public class EmbeddingService {
     /**
      * Creates a new collection in Qdrant with specified vector parameters.
      *
+     * @param collectionName collection name
      * @throws ExecutionException   if the collection creation operation fails
      * @throws InterruptedException if the thread is interrupted during execution
      */
-    public void createCollection() throws ExecutionException, InterruptedException {
+    public void createCollection(String collectionName) throws ExecutionException, InterruptedException {
 
         var result = qdrantClient.createCollectionAsync(collectionName,
                         VectorParams.newBuilder()
@@ -151,11 +171,13 @@ public class EmbeddingService {
     /**
      * Saves the list of point structures (vectors) to the Qdrant collection.
      *
-     * @param pointStructs the list of vectors to be saved
+     * @param pointStructs   the list of vectors to be saved
+     * @param collectionName collection name
      * @throws InterruptedException if the thread is interrupted during execution
      * @throws ExecutionException   if the saving operation fails
      */
-    private void saveVector(ArrayList<PointStruct> pointStructs) throws InterruptedException, ExecutionException {
+    private void saveVector(ArrayList<PointStruct> pointStructs, String collectionName)
+            throws InterruptedException, ExecutionException {
 
         var updateResult = qdrantClient.upsertAsync(collectionName, pointStructs).get();
         log.info(updateResult.getStatus().name());
@@ -163,17 +185,24 @@ public class EmbeddingService {
 
     /**
      * Constructs a point structure from a list of float values representing a vector.
+     * <p>
+     * The Points.SearchPoints.Builder does not support filtering directly by point IDs as part of its standard
+     * filtering mechanism because it primarily supports query vector similarity search, combined optionally
+     * with payload-based filtering.
      *
+     * @param id    identifier
      * @param point the vector values
      * @param text  text value
      * @return a {@link PointStruct} object containing the vector and associated metadata
      */
-    private PointStruct buildPointStruct(List<Float> point, String text) {
+    private PointStruct buildPointStruct(PointId id, List<Float> point, String text) {
+
+        String idValue = id.hasUuid() ? id.getUuid() : Long.toString(id.getNum());
 
         return PointStruct.newBuilder()
-                .setId(id(UUID.randomUUID()))
+                .setId(id)
                 .setVectors(vectors(point))
-                .putAllPayload(Map.of(PAYLOAD_KEY, value(text)))
+                .putAllPayload(Map.of(PAYLOAD_KEY, value(text), ID_KEY, value(idValue)))
                 .build();
     }
 
